@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gravador de Laudo Médico</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background-color: #f0f2f5;
+        display: flex;
+        justify-content: center;
+        padding-top: 50px;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        width: 600px;
+      }
+      h2 {
+        color: #2c3e50;
+        text-align: center;
+      }
+
+      .controls {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 20px;
+      }
+
+      button {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        transition: 0.3s;
+      }
+
+      #btnGravar {
+        background-color: #e74c3c;
+        color: white;
+      }
+      #btnGravar:hover {
+        background-color: #c0392b;
+      }
+      #btnGravar:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+
+      #btnParar {
+        background-color: #34495e;
+        color: white;
+      }
+      #btnParar:hover {
+        background-color: #2c3e50;
+      }
+      #btnParar:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+
+      .status {
+        text-align: center;
+        margin-bottom: 10px;
+        font-weight: bold;
+        height: 20px;
+      }
+      .gravando {
+        color: #e74c3c;
+        animation: pulse 1.5s infinite;
+      }
+      .processando {
+        color: #f39c12;
+      }
+
+      textarea {
+        width: 100%;
+        height: 200px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 16px;
+        resize: vertical;
+        box-sizing: border-box;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>🎙️ Ditado de Laudo</h2>
+
+      <div class="controls">
+        <button id="btnGravar">Iniciar Gravação</button>
+        <button id="btnParar" disabled>Parar e Transcrever</button>
+      </div>
+
+      <div id="status" class="status"></div>
+
+      <textarea
+        id="resultado"
+        placeholder="O texto do laudo aparecerá aqui para edição..."
+      ></textarea>
+    </div>
+
+    <script>
+      let mediaRecorder;
+      let audioChunks = [];
+      const btnGravar = document.getElementById("btnGravar");
+      const btnParar = document.getElementById("btnParar");
+      const statusDiv = document.getElementById("status");
+      const textArea = document.getElementById("resultado");
+
+      btnGravar.onclick = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+
+          mediaRecorder.ondataavailable = (event) => {
+            audioChunks.push(event.data);
+          };
+
+          mediaRecorder.onstop = enviarAudioParaBackend;
+
+          mediaRecorder.start();
+
+          btnGravar.disabled = true;
+          btnParar.disabled = false;
+          statusDiv.textContent = "● Gravando...";
+          statusDiv.className = "status gravando";
+          textArea.value = "";
+        } catch (err) {
+          alert("Erro ao acessar microfone: " + err);
+        }
+      };
+
+      btnParar.onclick = () => {
+        if (mediaRecorder.state !== "inactive") {
+          mediaRecorder.stop();
+          btnGravar.disabled = false;
+          btnParar.disabled = true;
+          statusDiv.textContent = "⏳ Processando áudio...";
+          statusDiv.className = "status processando";
+        }
+      };
+
+      async function enviarAudioParaBackend() {
+        const audioBlob = new Blob(audioChunks, { type: "audio/mp3" });
+        const formData = new FormData();
+        formData.append("file", audioBlob, "gravacao.mp3");
+
+        try {
+          // --- MUDANÇA IMPORTANTE AQUI (USE 127.0.0.1) ---
+          const response = await fetch("/transcrever", {
+            method: "POST",
+            body: formData,
+          });
+          // -----------------------------------------------
+
+          if (response.ok) {
+            const data = await response.json();
+            // Adicionei este log para você ver a resposta chegando no navegador (F12)
+            console.log("Resposta do servidor:", data);
+
+            textArea.value = data.texto_transcrito;
+            statusDiv.textContent = "✅ Transcrição concluída!";
+            statusDiv.className = "status";
+          } else {
+            statusDiv.textContent = "❌ Erro no servidor.";
+            console.error("Erro no fetch:", response.statusText);
+            alert("Erro ao transcrever. Veja o console (F12).");
+          }
+        } catch (error) {
+          console.error("Erro de rede:", error);
+          statusDiv.textContent = "❌ Erro de conexão.";
+          alert("Verifique se o Python está rodando!");
+        }
+      }
+    </script>
+  </body>
+</html>

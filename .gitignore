@@ -1,0 +1,119 @@
+# =====================================================
+# Plataforma Médica Integrada — .gitignore raiz
+# =====================================================
+
+# ----- Node / Front-end -----
+node_modules/
+**/node_modules/
+build/
+dist/
+.vite/
+.cache/
+.parcel-cache/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ----- Python -----
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# ----- Modelos / Binários grandes (NÃO versionar) -----
+*.exe
+*.dll
+*.dylib
+*.traineddata
+*.bin
+*.pt
+*.onnx
+*.h5
+*.pkl
+
+# ----- Banco SQLite local (modo de teste) -----
+*.db
+*.sqlite
+*.sqlite3
+backend/dev.db
+
+# Específicos do projeto
+Transcricao/ffmpeg.exe
+OCR/por.traineddata
+por.traineddata
+
+# ----- Variáveis de ambiente / segredos -----
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+**/.env
+!**/.env.example
+*.pem
+*.key
+*.crt
+secrets/
+
+# ----- IDEs / OS -----
+.idea/
+.vscode/*
+!.vscode/settings.json.example
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ----- Docker -----
+.docker/
+docker-compose.override.yml
+
+# ----- Logs / temporários -----
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+
+# ----- Uploads / dados sensíveis dos pacientes (LGPD) -----
+# NUNCA versione áudios, fotos de RG, exames ou qualquer PHI.
+# Se alguma coisa já foi commitada, use:
+#   git rm -r --cached <pasta>
+# e considere rodar git-filter-repo / BFG para apagar do histórico.
+uploads/
+**/uploads/
+storage/
+**/storage/
+data/raw/
+data/private/
+backend/models/Database/uploads/
+
+# ----- Cobertura / relatórios -----
+coverage/
+.nyc_output/
+
+# ----- Vercel / outros -----
+.vercel
+.next/
+.turbo/
+
+# Tempor�rios Word e VS Code
+~$*
+tempCodeRunnerFile.py
+
+# Temporarios Word e VS Code
+~$*
+tempCodeRunnerFile.py

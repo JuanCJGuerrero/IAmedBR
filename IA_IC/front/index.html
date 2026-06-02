@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Gerador de Laudo Médico</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h2>Gerador de Laudo Médico</h2>
+
+      <label for="sintomas">Descreva os sintomas do paciente</label>
+      <textarea
+        id="sintomas"
+        rows="5"
+        placeholder="Ex: febre alta, tosse seca, cansaço há 3 dias..."
+      >
+      </textarea>
+
+      <button onclick="gerarLaudo()">Gerar Laudo</button>
+
+      <div class="resultado-container">
+        <h3>Resultado</h3>
+        <div id="resultado"></div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,55 @@
+# Dependências e builds
+node_modules
+**/node_modules
+build
+dist
+.vite
+.cache
+
+# Python
+__pycache__
+**/__pycache__
+*.py[cod]
+.venv
+venv
+.pytest_cache
+
+# Git / IDE
+.git
+.gitignore
+.idea
+.vscode
+.DS_Store
+Thumbs.db
+
+# Variáveis de ambiente / segredos (NUNCA copiar para a imagem)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Logs e temporários
+*.log
+logs
+tmp
+temp
+
+# Uploads do app
+uploads
+storage
+
+# Documentação que não precisa estar na imagem
+README*
+*.md
+docs/
+
+# Binários grandes locais
+*.exe
+*.traineddata
+
+# Subpastas que serão buildadas em outros Dockerfiles (este é só do front)
+backend
+IA_IC
+OCR
+Transcricao
