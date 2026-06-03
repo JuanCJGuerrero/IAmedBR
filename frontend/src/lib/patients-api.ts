@@ -159,6 +159,20 @@ function toBackend(p: Partial<Patient>) {
   };
 }
 
+function dataUrlToBlob(dataUrl: string): Blob {
+  const [header, base64] = dataUrl.split(",");
+  const mimeMatch = header?.match(/data:(.*?);base64/);
+  const mimeType = mimeMatch?.[1] || "image/jpeg";
+  const binary = atob(base64 || "");
+  const bytes = new Uint8Array(binary.length);
+
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  return new Blob([bytes], { type: mimeType });
+}
+
 // Cache simples para list() sincrono (componentes esperam Patient[] sync)
 let _cache: Patient[] = [];
 let _cacheLoaded = false;
@@ -206,8 +220,8 @@ const patientsApiReal = {
   ocrRg: async (
     imageDataUrl: string,
   ): Promise<{ nome: string; cpf: string; rg: string; dataNascimento: string }> => {
-    // Converte data URL em File para multipart
-    const blob = await (await fetch(imageDataUrl)).blob();
+    // Converte data URL em File sem passar pelo fetch, para evitar CSP em browsers.
+    const blob = dataUrlToBlob(imageDataUrl);
     const file = new File([blob], "rg.jpg", { type: blob.type || "image/jpeg" });
     const fd = new FormData();
     fd.append("image", file);
