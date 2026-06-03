@@ -3,11 +3,11 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-# Dependências do sistema para OpenCV e PyMuPDF
+# Dependências do sistema para PyMuPDF
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        libgl1 \
-        libglib2.0-0 \
-        libgomp1 \
+    libgl1 \
+    libglib2.0-0 \
+    libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
@@ -27,16 +27,13 @@ COPY --from=builder /install /usr/local
 
 # Libs de sistema necessárias em runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        libgl1 \
-        libglib2.0-0 \
-        libgomp1 \
+    libgl1 \
+    libglib2.0-0 \
+    libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copia código da aplicação
 COPY --chown=appuser:appuser main.py document_parser.py ./
-
-# Pré-baixa os modelos PaddleOCR durante o build (evita cold-start lento)
-RUN python -c "from paddleocr import PaddleOCR; PaddleOCR(use_angle_cls=True, lang='pt', use_gpu=False, show_log=False)"
 
 USER appuser
 
