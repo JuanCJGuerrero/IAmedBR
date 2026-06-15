@@ -47,9 +47,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
-        networks:
+        
+    networks:
         - internal
-        - dokploy-network
+        - dokploy-network    
     ports:
       - "8100:8100"
 
