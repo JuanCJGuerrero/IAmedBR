@@ -36,8 +36,8 @@ services:
       dockerfile: Dockerfile
     container_name: pm-backend
     restart: unless-stopped
-    env_file:
-      - ./backend/.env
+    #env_file:
+     # - ./backend/.env
     environment:
       DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-plataforma_medica}
       # Porta 3000 adicionada para dev local do novo frontend (ia-medico-brilhante)
@@ -55,8 +55,8 @@ services:
       dockerfile: Dockerfile
     container_name: pm-ia-laudo
     restart: unless-stopped
-    env_file:
-      - ./IA_IC/.env
+    #env_file:
+     # - ./IA_IC/.env
     environment:
       CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000,http://localhost:3000
     networks: [internal]
@@ -69,8 +69,8 @@ services:
       dockerfile: Dockerfile
     container_name: pm-transcricao
     restart: unless-stopped
-    env_file:
-      - ./Transcricao/.env
+    #env_file:
+     # - ./Transcricao/.env
     environment:
       IA_URL: http://ia_laudo:8200
       CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000,http://localhost:3000
@@ -86,8 +86,8 @@ services:
       dockerfile: Dockerfile
     container_name: pm-ocr
     restart: unless-stopped
-    env_file:
-      - ./OCR/.env
+    #env_file:
+     # - ./OCR/.env
     environment:
       CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000,http://localhost:3000
     networks: [internal]
