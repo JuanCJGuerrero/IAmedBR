@@ -25,7 +25,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks: [internal]
+      networks:
+      - internal
+      - dokploy-network
     # Não exponha o Postgres publicamente em produção.
     ports:
       - "127.0.0.1:5432:5432"
@@ -45,7 +47,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    networks: [internal]
+        networks:
+        - internal
+        - dokploy-network
     ports:
       - "8100:8100"
 
@@ -59,7 +63,9 @@ services:
      # - ./IA_IC/.env
     environment:
       CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000,http://localhost:3000
-    networks: [internal]
+      networks:
+      - internal
+      - dokploy-network
     ports:
       - "8200:8200"
 
@@ -76,7 +82,9 @@ services:
       CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000,http://localhost:3000
     depends_on:
       - ia_laudo
-    networks: [internal]
+    networks:
+      - internal
+      - dokploy-network
     ports:
       - "8300:8300"
 
@@ -90,7 +98,9 @@ services:
      # - ./OCR/.env
     environment:
       CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000,http://localhost:3000
-    networks: [internal]
+      networks:
+      - internal
+      - dokploy-network
     ports:
       - "8000:8000"
 
