@@ -1,11 +1,3 @@
-# =====================================================
-# Plataforma Médica Integrada — orquestração local
-# =====================================================
-# Sobe todos os serviços de uma vez:
-#   docker compose up -d --build
-# Em produção, cada serviço deve ter seus próprios segredos.
-# Este compose é orientado a desenvolvimento e demonstração.
-
 name: plataforma-medica
 
 services:
@@ -25,10 +17,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      networks:
+    networks:
       - internal
-      - dokploy-network
-    # Não exponha o Postgres publicamente em produção.
     ports:
       - "127.0.0.1:5432:5432"
 
@@ -38,19 +28,14 @@ services:
       dockerfile: Dockerfile
     container_name: pm-backend
     restart: unless-stopped
-    #env_file:
-     # - ./backend/.env
     environment:
       DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-plataforma_medica}
-      # Porta 3000 adicionada para dev local do novo frontend (ia-medico-brilhante)
-      CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000,http://localhost:3000
+      CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000
     depends_on:
       db:
         condition: service_healthy
-        
     networks:
-        - internal
-        - dokploy-network    
+      - internal
     ports:
       - "8100:8100"
 
@@ -60,13 +45,10 @@ services:
       dockerfile: Dockerfile
     container_name: pm-ia-laudo
     restart: unless-stopped
-    #env_file:
-     # - ./IA_IC/.env
     environment:
-      CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000,http://localhost:3000
-      networks:
+      CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000
+    networks:
       - internal
-      - dokploy-network
     ports:
       - "8200:8200"
 
@@ -76,16 +58,13 @@ services:
       dockerfile: Dockerfile
     container_name: pm-transcricao
     restart: unless-stopped
-    #env_file:
-     # - ./Transcricao/.env
     environment:
       IA_URL: http://ia_laudo:8200
-      CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000,http://localhost:3000
+      CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000
     depends_on:
       - ia_laudo
     networks:
       - internal
-      - dokploy-network
     ports:
       - "8300:8300"
 
@@ -95,13 +74,10 @@ services:
       dockerfile: Dockerfile
     container_name: pm-ocr
     restart: unless-stopped
-    #env_file:
-     # - ./OCR/.env
     environment:
-      CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000,http://localhost:3000
-      networks:
+      CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000
+    networks:
       - internal
-      - dokploy-network
     ports:
       - "8000:8000"
 
@@ -117,9 +93,8 @@ services:
       - ia_laudo
       - transcricao
     networks:
-    - internal
-    - dokploy-network
-    ports:
+      - internal
+    expose:
       - "80"
     healthcheck:
       test: ["CMD", "sh", "-c", "wget -qO- http://localhost/health || exit 1"]
@@ -131,7 +106,6 @@ services:
 networks:
   internal:
     driver: bridge
-dokploy-network:
-    external: true
+
 volumes:
   pgdata:
