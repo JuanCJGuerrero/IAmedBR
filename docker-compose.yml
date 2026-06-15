@@ -105,7 +105,9 @@ services:
       - ocr
       - ia_laudo
       - transcricao
-    networks: [internal]
+    networks:
+    - internal
+    - dokploy-network
     ports:
       - "80"
     healthcheck:
@@ -118,6 +120,7 @@ services:
 networks:
   internal:
     driver: bridge
-
+dokploy-network:
+    external: true
 volumes:
   pgdata:
