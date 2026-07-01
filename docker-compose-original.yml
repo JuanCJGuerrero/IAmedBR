@@ -1,0 +1,123 @@
+# =====================================================
+# Plataforma Médica Integrada — orquestração local
+# =====================================================
+# Sobe todos os serviços de uma vez:
+#   docker compose up -d --build
+# Em produção, cada serviço deve ter seus próprios segredos.
+# Este compose é orientado a desenvolvimento e demonstração.
+
+name: plataforma-medica
+
+services:
+
+  db:
+    image: postgres:16-alpine
+    container_name: pm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-plataforma_medica}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [internal]
+    # Não exponha o Postgres publicamente em produção.
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pm-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-plataforma_medica}
+      # Porta 3000 adicionada para dev local do novo frontend (ia-medico-brilhante)
+      CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000,http://localhost:3000
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [internal]
+    ports:
+      - "8100:8100"
+
+  ia_laudo:
+    build:
+      context: ./IA_IC
+      dockerfile: Dockerfile
+    container_name: pm-ia-laudo
+    restart: unless-stopped
+    env_file:
+      - ./IA_IC/.env
+    environment:
+      CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000,http://localhost:3000
+    networks: [internal]
+    ports:
+      - "8200:8200"
+
+  transcricao:
+    build:
+      context: ./Transcricao
+      dockerfile: Dockerfile
+    container_name: pm-transcricao
+    restart: unless-stopped
+    env_file:
+      - ./Transcricao/.env
+    environment:
+      IA_URL: http://ia_laudo:8200
+      CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000,http://localhost:3000
+    depends_on:
+      - ia_laudo
+    networks: [internal]
+    ports:
+      - "8300:8300"
+
+  ocr:
+    build:
+      context: ./OCR
+      dockerfile: Dockerfile
+    container_name: pm-ocr
+    restart: unless-stopped
+    env_file:
+      - ./OCR/.env
+    environment:
+      CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000,http://localhost:3000
+    networks: [internal]
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pm-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+      - ocr
+      - ia_laudo
+      - transcricao
+    networks: [internal]
+    ports:
+      - "80:80"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -qO- http://localhost/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  pgdata:
